@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Приват24 МС | Історія</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pb-green: #70b33e;
+            --pb-dark: #212121;
+            --pb-bg: #ebedf0;
+            --white: #ffffff;
+            --danger: #e74c3c;
+        }
+
+        body {
+            background-color: var(--pb-bg);
+            color: #333;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 70px;
+            background: var(--pb-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            gap: 25px;
+            flex-shrink: 0;
+        }
+
+        .pb-logo {
+            width: 40px; height: 40px;
+            background: var(--pb-green);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-family: 'Montserrat'; font-weight: 900; font-size: 22px;
+        }
+
+        .side-icon { font-size: 22px; cursor: pointer; opacity: 0.6; transition: 0.3s; color: white; text-decoration: none; display: flex; justify-content: center; width: 100%; }
+        .side-icon:hover { opacity: 1; transform: scale(1.1); }
+        .side-icon.active { opacity: 1; border-left: 3px solid var(--pb-green); }
+
+        /* Main Content */
+        .main-view {
+            flex-grow: 1;
+            padding: 40px 60px;
+            overflow-y: auto;
+        }
+
+        header {
+            margin-bottom: 40px;
+        }
+
+        h1 { font-family: 'Montserrat'; font-weight: 800; font-size: 28px; margin: 0; }
+
+        .history-container {
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            padding: 20px;
+            max-width: 900px;
+            min-height: 200px;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: 0.2s;
+        }
+
+        .transaction-item:last-child { border-bottom: none; }
+        .transaction-item:hover { background: #fafafa; }
+
+        .tx-info { display: flex; flex-direction: column; gap: 5px; }
+        .tx-user { font-weight: 700; font-family: 'Montserrat'; font-size: 16px; }
+        .tx-reason { font-size: 13px; color: #555; font-style: italic; background: #f0f4f0; padding: 2px 8px; border-radius: 5px; width: fit-content; }
+        .tx-date { font-size: 12px; color: #8e8e93; }
+
+        .tx-amount { font-family: 'Montserrat'; font-weight: 900; font-size: 18px; }
+        .amount-minus { color: var(--danger); }
+        .amount-plus { color: var(--pb-green); }
+
+        #empty-msg { text-align: center; padding: 40px; color: #8e8e93; font-style: italic; }
+
+        @media (max-width: 600px) {
+            .main-view { padding: 20px; }
+            .tx-amount { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="pb-logo">P</div>
+    <a href="bankminecraft.html" class="side-icon">🏠</a>
+    <a href="mcb-history.html" class="side-icon active">📜</a>
+    <div class="side-icon" id="logout-btn">🚪</div>
+</div>
+
+<div class="main-view">
+    <header>
+        <h1>Історія транзакцій</h1>
+        <div style="color: #8e8e93; font-size: 14px; margin-top: 5px;">Ваші фінансові операції за весь час</div>
+    </header>
+
+    <div class="history-container" id="history-list">
+        <div id="loading-msg" style="text-align: center; padding: 20px;">Завантаження історії...</div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getFirestore, collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBCuIp95A78sJ3xZNEkezi_ms6cMrUa434",
+        authDomain: "mc-bank-a2faa.firebaseapp.com",
+        projectId: "mc-bank-a2faa",
+        storageBucket: "mc-bank-a2faa.firebasestorage.app",
+        messagingSenderId: "326207868586",
+        appId: "1:326207868586:web:ba9a71626d58d9de68cad3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            loadHistory(user.uid);
+        } else {
+            window.location.href = "mcb-auth.html";
+        }
+    });
+
+    function loadHistory(uid) {
+        const historyList = document.getElementById('history-list');
+        
+        // Створюємо запит
+        const q = query(
+            collection(db, "transactions"), 
+            where("participants", "array-contains", uid),
+            orderBy("timestamp", "desc")
+        );
+
+        // Слухаємо оновлення в реальному часі
+        onSnapshot(q, (snapshot) => {
+            historyList.innerHTML = '';
+            
+            if (snapshot.empty) {
+                historyList.innerHTML = '<div id="empty-msg">Транзакцій ще не було</div>';
+                return;
+            }
+
+            snapshot.forEach((doc) => {
+                const tx = doc.data();
+                const isSender = tx.senderUid === uid;
+                const amountClass = isSender ? 'amount-minus' : 'amount-plus';
+                const prefix = isSender ? '-' : '+';
+                
+                // Форматування дати з перевіркою
+                let dateStr = 'Нещодавно';
+                if (tx.timestamp && tx.timestamp.toDate) {
+                    dateStr = tx.timestamp.toDate().toLocaleString('uk-UA', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
+
+                // Обробка причини (якщо є)
+                const reasonHtml = tx.reason ? `<span class="tx-reason">${tx.reason}</span>` : '';
+                
+                const html = `
+                    <div class="transaction-item">
+                        <div class="tx-info">
+                            <span class="tx-user">${isSender ? 'Переказ для: ' + (tx.receiverNick || 'Гравця') : 'Від: ' + (tx.senderNick || 'Гравця')}</span>
+                            ${reasonHtml}
+                            <span class="tx-date">${dateStr}</span>
+                        </div>
+                        <div class="tx-amount ${amountClass}">
+                            ${prefix} ¥${Number(tx.amount).toFixed(2)}
+                        </div>
+                    </div>
+                `;
+                historyList.innerHTML += html;
+            });
+        }, (error) => {
+            console.error("Помилка завантаження:", error);
+            if (error.message.includes("FAILED_PRECONDITION")) {
+                historyList.innerHTML = `<div style="padding:20px; font-size:12px; color:var(--danger);">Потрібно створити індекс у Firebase Console. Відкрийте консоль браузера для посилання.</div>`;
+            } else {
+                historyList.innerHTML = `<div style="padding:20px;">Помилка доступу до даних.</div>`;
+            }
+        });
+    }
+
+    document.getElementById('logout-btn').onclick = () => {
+        signOut(auth).then(() => window.location.href = "mcb-auth.html");
+    };
+</script>
+
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Приват24 МС | Вхід</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --pb-green: #70b33e; --pb-dark: #212121; }
+        body { background: #f4f6f8; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .auth-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center; }
+        h1 { font-family: 'Montserrat'; font-weight: 900; color: var(--pb-dark); margin-bottom: 30px; text-transform: uppercase; }
+        input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #e0e0e0; border-radius: 12px; box-sizing: border-box; font-family: 'Inter'; font-size: 16px; outline: none; }
+        .btn-green { background: var(--pb-green); color: white; border: none; width: 100%; padding: 18px; border-radius: 12px; font-family: 'Montserrat'; font-weight: 800; cursor: pointer; transition: 0.3s; }
+        .link { margin-top: 20px; display: block; color: var(--pb-green); text-decoration: none; font-size: 14px; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div class="auth-card">
+    <div style="background: var(--pb-green); width: 50px; height: 50px; border-radius: 12px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; color: white; font-family: 'Montserrat'; font-weight: 900; font-size: 24px;">P</div>
+    <h1>Вхід</h1>
+    <input type="email" id="email" placeholder="Електронна пошта">
+    <input type="password" id="password" placeholder="Пароль">
+    <button class="btn-green" id="btn-login">УВІЙТИ</button>
+    <a href="mcb-sign.html" class="link">Немає акаунта? Реєстрація</a>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBCuIp95A78sJ3xZNEkezi_ms6cMrUa434",
+        authDomain: "mc-bank-a2faa.firebaseapp.com",
+        projectId: "mc-bank-a2faa",
+        storageBucket: "mc-bank-a2faa.firebasestorage.app",
+        messagingSenderId: "326207868586",
+        appId: "1:326207868586:web:ba9a71626d58d9de68cad3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    document.getElementById('btn-login').onclick = async () => {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+            window.location.href = "bankminecraft.html";
+        } catch (error) {
+            alert("Помилка входу: " + error.message);
+        }
+    };
+</script>
+</body>
+</html>

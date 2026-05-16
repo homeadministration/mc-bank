@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Приват24 МС | Головна</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pb-green: #70b33e;
+            --pb-dark: #212121;
+            --pb-bg: #ebedf0;
+            --card-gradient: linear-gradient(135deg, #3a3a3a 0%, #111111 100%);
+            --white: #ffffff;
+            --danger: #e74c3c;
+        }
+
+        body {
+            background-color: var(--pb-bg);
+            color: #333;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ID Corner Badge */
+        .id-corner-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--pb-dark);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-family: 'Montserrat';
+            font-weight: 800;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            border: 1px solid var(--pb-green);
+        }
+        .id-status { width: 8px; height: 8px; background: var(--pb-green); border-radius: 50%; }
+        .id-status.blocked { background: var(--danger); }
+
+        /* Sidebar */
+        .sidebar {
+            width: 70px;
+            background: var(--pb-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            gap: 25px;
+            flex-shrink: 0;
+        }
+
+        .pb-logo {
+            width: 40px; height: 40px;
+            background: var(--pb-green);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-family: 'Montserrat'; font-weight: 900; font-size: 22px;
+        }
+
+        .side-icon { font-size: 22px; cursor: pointer; opacity: 0.6; transition: 0.3s; color: white; text-decoration: none; display: flex; justify-content: center; width: 100%; }
+        .side-icon:hover { opacity: 1; transform: scale(1.1); }
+
+        /* Content Area */
+        .main-view {
+            flex-grow: 1;
+            padding: 40px 60px;
+            overflow-y: auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+        }
+
+        .user-title h1 { font-family: 'Montserrat'; font-weight: 800; font-size: 28px; margin: 0; }
+        .sub-text { color: #8e8e93; font-size: 14px; margin-top: 5px; }
+
+        /* Card & Balance Grid */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 40px;
+        }
+
+        .bank-card {
+            width: 420px; height: 250px;
+            background: var(--card-gradient);
+            border-radius: 20px; padding: 30px;
+            box-sizing: border-box; color: white;
+            position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            transition: 0.5s;
+        }
+        
+        .bank-card.blocked-card {
+            filter: grayscale(1) opacity(0.8);
+            border: 2px solid var(--danger);
+        }
+
+        .card-chip {
+            width: 50px; height: 40px;
+            background: linear-gradient(135deg, #d4af37, #f9d976);
+            border-radius: 8px; margin-bottom: 20px;
+        }
+
+        .card-number-display {
+            font-family: 'Montserrat'; font-size: 24px; letter-spacing: 3px;
+            margin-top: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .visa-logo { font-family: 'Montserrat'; font-style: italic; font-weight: 900; font-size: 24px; color: #f7a600; }
+
+        .action-box {
+            background: var(--white);
+            border-radius: 20px; padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        /* Inputs */
+        .input-group { margin-bottom: 20px; }
+        .input-group label { font-size: 11px; font-weight: 700; color: #8e8e93; margin-bottom: 8px; display: block; text-transform: uppercase; }
+        
+        .custom-input {
+            width: 100%; padding: 15px;
+            background: #f9f9f9; border: 1px solid #e0e0e0;
+            border-radius: 12px; font-size: 18px; font-family: 'Montserrat';
+            box-sizing: border-box; outline: none; transition: 0.3s;
+        }
+        .custom-input:focus { border-color: var(--pb-green); background: #fff; }
+
+        .btn-confirm {
+            background: var(--pb-green); color: white; border: none;
+            width: 100%; padding: 18px; border-radius: 12px;
+            font-family: 'Montserrat'; font-weight: 800; font-size: 16px;
+            cursor: pointer; transition: 0.3s;
+        }
+        .btn-confirm:hover { filter: brightness(1.1); transform: translateY(-2px); }
+        .btn-confirm:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .btn-confirm.btn-danger { background: var(--danger); }
+
+        .balance-value { font-family: 'Montserrat'; font-size: 26px; font-weight: 900; color: var(--pb-green); }
+
+        #overlay-loading {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--pb-bg); z-index: 2000; display: flex;
+            justify-content: center; align-items: center; font-family: 'Montserrat';
+        }
+
+        .blocked-message {
+            color: var(--danger);
+            font-weight: 800;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* АДАПТИВНІСТЬ */
+        @media (max-width: 900px) {
+            .grid-layout { grid-template-columns: 1fr; }
+            .bank-card { display: none; } /* Приховуємо карту на малих екранах */
+            .main-view { padding: 20px; }
+            header { flex-direction: column; gap: 20px; }
+            .id-corner-badge { top: 10px; right: 10px; font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="overlay-loading">
+    <h2>Опрацювання даних...</h2>
+</div>
+
+<div class="id-corner-badge">
+    <div class="id-status" id="status-dot"></div>
+    <span>ID: <span id="widget-id">XXXX</span></span>
+</div>
+
+<div class="sidebar">
+    <div class="pb-logo">P</div>
+    <a href="#" class="side-icon" title="Головна">🏠</a>
+    <a href="mcb-history.html" class="side-icon" title="Історія транзакцій">📜</a>
+    <div class="side-icon" id="logout-btn" title="Вихід">🚪</div>
+</div>
+
+<div class="main-view">
+    <header>
+        <div class="user-title">
+            <h1 id="welcome-nick">Вітаємо!</h1>
+            <div class="sub-text">Ваш персональний банкінг Minecraft State</div>
+        </div>
+        <div style="text-align: right;">
+
+        </div>
+    </header>
+
+    <div class="grid-layout">
+        <div>
+            <div class="bank-card" id="main-card">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600;">
+                    <span id="card-type-label">BLACK EDITION</span>
+                    <span>PRIVAT MC</span>
+                </div>
+                <div class="card-chip" style="margin-top: 20px;"></div>
+                <div class="card-number-display" id="card-display">4441 0000 0000 XXXX</div>
+                <div style="margin-top: 30px; display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <div style="font-size: 9px; opacity: 0.6; text-transform: uppercase;">Card Holder</div>
+                        <div style="font-size: 14px; font-weight: 600;" id="card-holder">PLAYER NAME</div>
+                    </div>
+                    <div class="visa-logo">VISA</div>
+                </div>
+            </div>
+
+            <div class="action-box" style="margin-top: 30px;">
+                <div style="font-size: 13px; color: #8e8e93; margin-bottom: 5px;">Доступний баланс</div>
+                <div class="balance-value">¥ <span id="balance-num">0.00</span></div>
+            </div>
+        </div>
+
+        <div class="action-box">
+            <h2 style="font-family: 'Montserrat'; font-size: 18px; margin-top: 0; margin-bottom: 25px;">Новий переказ</h2>
+            
+            <div class="input-group">
+                <label>ID отримувача (4 цифри)</label>
+                <input type="text" id="target-short-id" class="custom-input" maxlength="4" placeholder="Наприклад: 1234">
+            </div>
+
+            <div class="input-group">
+                <label>Сума в Юанях (¥)</label>
+                <input type="number" id="send-amount" class="custom-input" placeholder="0.00">
+            </div>
+
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid var(--pb-green);" id="tax-box">
+                <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                    <span>Податок системи (5%):</span>
+                    <b id="calc-tax">¥ 0.00</b>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 14px; margin-top: 5px; font-weight: 800;">
+                    <span>Разом до списання:</span>
+                    <span id="calc-total">¥ 0.00</span>
+                </div>
+            </div>
+
+            <button class="btn-confirm" id="btn-transfer">ВІДПРАВИТИ ГРОШІ</button>
+            <div id="blocked-msg" class="blocked-message">ВАША КАРТКА ЗАБЛОКОВАНА АДМІНІСТРАЦІЄЮ</div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, collection, query, where, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBCuIp95A78sJ3xZNEkezi_ms6cMrUa434",
+        authDomain: "mc-bank-a2faa.firebaseapp.com",
+        projectId: "mc-bank-a2faa",
+        storageBucket: "mc-bank-a2faa.firebasestorage.app",
+        messagingSenderId: "326207868586",
+        appId: "1:326207868586:web:ba9a71626d58d9de68cad3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let userData = null;
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            const userRef = doc(db, "users", user.uid);
+            onSnapshot(userRef, (snap) => {
+                if (snap.exists()) {
+                    userData = snap.data();
+                    renderUI();
+                }
+                document.getElementById('overlay-loading').style.display = 'none';
+            });
+        } else {
+            window.location.href = "mcb-auth.html";
+        }
+    });
+
+    function renderUI() {
+        document.getElementById('welcome-nick').innerText = `Вітаємо, ${userData.nickname}!`;
+        document.getElementById('widget-id').innerText = userData.shortID;
+        document.getElementById('card-display').innerText = `4441 0000 0000 ${userData.shortID}`;
+        document.getElementById('card-holder').innerText = (userData.nickname || "PLAYER").toUpperCase();
+        
+        const balance = userData.balance || 0;
+        document.getElementById('balance-num').innerText = balance.toLocaleString('uk-UA', {minimumFractionDigits: 2});
+
+        const btn = document.getElementById('btn-transfer');
+        const card = document.getElementById('main-card');
+        const statusDot = document.getElementById('status-dot');
+        const blockedMsg = document.getElementById('blocked-msg');
+        const taxBox = document.getElementById('tax-box');
+
+        if (userData.isBlocked) {
+            btn.disabled = true;
+            btn.innerText = "ОПЕРАЦІЇ ЗАБОРОНЕНІ";
+            btn.classList.add('btn-danger');
+            card.classList.add('blocked-card');
+            statusDot.classList.add('blocked');
+            blockedMsg.style.display = 'block';
+            taxBox.style.opacity = '0.3';
+            document.getElementById('card-type-label').innerText = "CARD BLOCKED";
+        } else {
+            btn.disabled = false;
+            btn.innerText = "ВІДПРАВИТИ ГРОШІ";
+            btn.classList.remove('btn-danger');
+            card.classList.remove('blocked-card');
+            statusDot.classList.remove('blocked');
+            blockedMsg.style.display = 'none';
+            taxBox.style.opacity = '1';
+            document.getElementById('card-type-label').innerText = "BLACK EDITION";
+        }
+    }
+
+    document.getElementById('send-amount').addEventListener('input', (e) => {
+        const amt = parseFloat(e.target.value) || 0;
+        const tax = amt * 0.05;
+        document.getElementById('calc-tax').innerText = `¥ ${tax.toFixed(2)}`;
+        document.getElementById('calc-total').innerText = `¥ ${(amt + tax).toFixed(2)}`;
+    });
+
+    document.getElementById('btn-transfer').onclick = async () => {
+        if(userData.isBlocked) return;
+        const targetShortID = document.getElementById('target-short-id').value;
+        const amount = parseFloat(document.getElementById('send-amount').value);
+        const btn = document.getElementById('btn-transfer');
+
+        if (!targetShortID || isNaN(amount) || amount <= 0) return alert("Вкажіть коректні дані!");
+        if (targetShortID === userData.shortID) return alert("Ви не можете відправити гроші самому собі!");
+        const totalToDebit = amount + (amount * 0.05);
+        if (totalToDebit > (userData.balance || 0)) return alert("Недостатньо юанів на балансі!");
+
+        try {
+            btn.disabled = true;
+            btn.innerText = "ОБРОБКА...";
+            const q = query(collection(db, "users"), where("shortID", "==", targetShortID));
+            const querySnap = await getDocs(q);
+            if (querySnap.empty) {
+                alert("Отримувача з таким ID не знайдено!");
+                btn.disabled = false;
+                btn.innerText = "ВІДПРАВИТИ ГРОШІ";
+                return;
+            }
+            const recipientDoc = querySnap.docs[0];
+            const recipientRef = doc(db, "users", recipientDoc.id);
+            const senderRef = doc(db, "users", auth.currentUser.uid);
+
+            await runTransaction(db, async (transaction) => {
+                const sDoc = await transaction.get(senderRef);
+                const rDoc = await transaction.get(recipientRef);
+                const newSenderBalance = (sDoc.data().balance || 0) - totalToDebit;
+                const newRecipientBalance = (rDoc.data().balance || 0) + amount;
+                
+                // 1. Оновлення балансів
+                transaction.update(senderRef, { balance: newSenderBalance });
+                transaction.update(recipientRef, { balance: newRecipientBalance });
+
+                // 2. Створення запису в історію
+                const txRef = doc(collection(db, "transactions"));
+                transaction.set(txRef, {
+                    senderUid: auth.currentUser.uid,
+                    senderNick: userData.nickname,
+                    receiverUid: recipientDoc.id,
+                    receiverNick: recipientDoc.data().nickname,
+                    amount: amount,
+                    timestamp: new Date(),
+                    participants: [auth.currentUser.uid, recipientDoc.id]
+                });
+            });
+
+            alert(`Успішно! Ви надіслали ¥${amount} гравцеві ${recipientDoc.data().nickname}`);
+            document.getElementById('send-amount').value = '';
+            document.getElementById('target-short-id').value = '';
+        } catch (e) {
+            console.error(e);
+            alert("Помилка транзакції.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "ВІДПРАВИТИ ГРОШІ";
+        }
+    };
+
+    document.getElementById('logout-btn').onclick = () => {
+        signOut(auth).then(() => {
+            window.location.href = "mcb-auth.html";
+        });
+    };
+</script>
+
+</body>
+</html>

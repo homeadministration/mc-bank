@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Приват24 МС | Реєстрація</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --pb-green: #70b33e; --pb-dark: #212121; }
+        body { 
+            background: #f4f6f8; 
+            font-family: 'Inter', sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .auth-card { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 24px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.07); 
+            width: 100%; 
+            max-width: 420px; 
+            text-align: center; 
+            box-sizing: border-box;
+        }
+        .logo-box {
+            background: var(--pb-green); 
+            width: 56px; 
+            height: 56px; 
+            border-radius: 14px; 
+            margin: 0 auto 24px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-family: 'Montserrat'; 
+            font-weight: 900; 
+            font-size: 26px;
+        }
+        h1 { 
+            font-family: 'Montserrat'; 
+            font-weight: 900; 
+            color: var(--pb-dark); 
+            margin-bottom: 25px; 
+            text-transform: uppercase; 
+            font-size: 22px;
+            letter-spacing: -0.5px;
+        }
+        .input-group {
+            width: 100%;
+            margin-bottom: 12px;
+            text-align: left;
+        }
+        input { 
+            width: 100%; 
+            padding: 16px; 
+            border: 1px solid #e0e0e0; 
+            border-radius: 14px; 
+            box-sizing: border-box; 
+            font-family: 'Inter'; 
+            font-size: 16px; 
+            outline: none; 
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+        input:focus { 
+            border-color: var(--pb-green); 
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(112, 179, 62, 0.1);
+        }
+        .btn-green { 
+            background: var(--pb-green); 
+            color: white; 
+            border: none; 
+            width: 100%; 
+            padding: 18px; 
+            border-radius: 14px; 
+            font-family: 'Montserrat'; 
+            font-weight: 800; 
+            font-size: 16px;
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            margin-top: 10px;
+        }
+        .btn-green:hover { 
+            filter: brightness(1.05); 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(112, 179, 62, 0.2);
+        }
+        .btn-green:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .link { 
+            margin-top: 25px; 
+            display: block; 
+            color: var(--pb-green); 
+            text-decoration: none; 
+            font-size: 14px; 
+            font-weight: 600; 
+        }
+        
+        /* Мобільна адаптація */
+        @media (max-width: 480px) {
+            .auth-card { padding: 30px 20px; border-radius: 0; position: fixed; top:0; bottom:0; left:0; right:0; max-width: 100%; display: flex; flex-direction: column; justify-content: center;}
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-card">
+    <div class="logo-box">P</div>
+    <h1>Реєстрація</h1>
+    
+    <div class="input-group">
+        <input type="text" id="nickname" placeholder="Нікнейм у Minecraft" required>
+    </div>
+    <div class="input-group">
+        <input type="email" id="email" placeholder="Електронна пошта" required>
+    </div>
+    <div class="input-group">
+        <input type="password" id="password" placeholder="Пароль" required>
+    </div>
+    
+    <button class="btn-green" id="btn-sign">СТВОРИТИ АКАУНТ</button>
+    <a href="mcb-auth.html" class="link">Вже є акаунт? Увійти</a>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBCuIp95A78sJ3xZNEkezi_ms6cMrUa434",
+        authDomain: "mc-bank-a2faa.firebaseapp.com",
+        projectId: "mc-bank-a2faa",
+        storageBucket: "mc-bank-a2faa.firebasestorage.app",
+        messagingSenderId: "326207868586",
+        appId: "1:326207868586:web:ba9a71626d58d9de68cad3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Функція для генерації унікального 4-значного ID
+    async function generateUniqueShortID() {
+        let isUnique = false;
+        let newID = "";
+        
+        while (!isUnique) {
+            // Генеруємо 4 цифри (від 0000 до 9999)
+            newID = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            
+            // Перевіряємо в базі, чи вже існує такий ID
+            const q = query(collection(db, "users"), where("shortID", "==", newID));
+            const querySnapshot = await getDocs(q);
+            
+            if (querySnapshot.empty) {
+                isUnique = true;
+            }
+        }
+        return newID;
+    }
+
+    document.getElementById('btn-sign').onclick = async () => {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        const nick = document.getElementById('nickname').value;
+        const btn = document.getElementById('btn-sign');
+
+        if(!email || !pass || !nick) {
+            alert("Заповніть всі поля!");
+            return;
+        }
+
+        try {
+            btn.disabled = true;
+            btn.innerText = "ГЕНЕРАЦІЯ ID...";
+
+            // 1. Створюємо юзера в Auth
+            const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+            const user = userCredential.user;
+
+            // 2. Генеруємо унікальний короткий ID
+            const shortID = await generateUniqueShortID();
+
+            // 3. Зберігаємо в Firestore у вкладку "users"
+            await setDoc(doc(db, "users", user.uid), {
+                uid: user.uid,
+                nickname: nick,
+                shortID: shortID, // Новий формат XXXX
+                balance: 100.00, // Початкові Юані
+                email: email,
+                regDate: new Date().toISOString()
+            });
+
+            alert(`Акаунт створено! Ваш банківський ID: ${shortID}`);
+            window.location.href = "bankminecraft.html";
+            
+        } catch (error) {
+            btn.disabled = false;
+            btn.innerText = "СТВОРИТИ АКАУНТ";
+            alert("Помилка реєстрації: " + error.message);
+        }
+    };
+</script>
+</body>
+</html>
